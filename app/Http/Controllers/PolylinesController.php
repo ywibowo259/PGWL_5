@@ -47,11 +47,26 @@ class PolylinesController extends Controller
             'description.required' => 'Deskripsi harus diisi.',
         ]);
 
+        // mengecek dan membuat dirktori
+        if (!is_dir('storage/images')) {
+        mkdir('./storage/images', 0777);
+        }
+
+        // get the upload image
+        if ($request->hasFile('image')) {
+        $image = $request->file('image');
+        $name_image = time() . "polylines." . strtolower($image->getClientOriginalExtension());
+        $image->move('storage/images', $name_image);
+        } else {
+        $name_image = null;
+        }
+
         $data = [
             // Gunakan DB::raw agar database PostgreSQL mengerti format spasialnya
             'geom' => DB::raw("ST_GeomFromText('".$request->geometry_polylines."')"),
             'name' => $request->name,
             'description' => $request->description,
+            'image' => $name_image,
         ];
 
         // simpan data ke database

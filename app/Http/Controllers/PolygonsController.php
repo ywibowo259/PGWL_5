@@ -43,17 +43,42 @@ class PolygonsController extends Controller
             'geometry_polygon' => 'required',
             'name' => 'required',
             'description' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'geometry_polygon.required' => 'Geometri polygon harus diisi.',
             'name.required' => 'Nama harus diisi.',
             'description.required' => 'Deskripsi harus diisi.',
+            'description.string' => 'Field description harus berupa string.',
+            'image.mimes' => 'Field image harus berupa gambar.',
+            'image.max' => 'Field image tidak boleh lebih dari 2MB.',
+            'image.image' => 'Field image harus berupa gambar.',
         ]);
+
+        // mengecek dan membuat dirktori
+        if (!is_dir('storage/images')) {
+        mkdir('./storage/images', 0777);
+        }
+
+        // get the upload image
+        if ($request->hasFile('image')) {
+        $image = $request->file('image');
+        $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
+        $image->move('storage/images', $name_image);
+        } else {
+        $name_image = null;
+
+        }
 
         $data = [
             // Gunakan DB::raw agar database PostgreSQL menerima format spasialnya
             'geom' => DB::raw("ST_GeomFromText('".$request->geometry_polygon."')"),
             'name' => $request->name,
             'description' => $request->description,
+            'description.string' => 'Field description harus berupa string.',
+            'image.mimes' => 'Field image harus berupa gambar.',
+            'image.max' => 'Field image tidak boleh lebih dari 2MB.',
+            'image.image' => 'Field image harus berupa gambar.',
+            'image' => $name_image,
         ];
 
         // Simpan data ke database
